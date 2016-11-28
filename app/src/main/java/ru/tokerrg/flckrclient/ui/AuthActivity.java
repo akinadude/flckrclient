@@ -3,8 +3,8 @@ package ru.tokerrg.flckrclient.ui;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.AsyncTask;
-import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
+import android.support.v7.app.ActionBarActivity;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -18,21 +18,7 @@ import ru.tokerrg.flckrclient.api.Constants;
 
 public class AuthActivity extends ActionBarActivity {
 
-    /*TODO
-        1. Sign every request
-            1.1 How should I form source string for further hash calculating?
-            Some work in client implementation.
-            1.2 How are retrofit and okHttpClient collaborating
-        2. Done! Get request token
-        3. Done! Get verifier
-        4. Doing... Get access token
-        5. Clear out architecture
-        6. Callbacks in retrofit requests
-        7. No more AsyncTasks!
-        */
-
     private Api mApi;
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

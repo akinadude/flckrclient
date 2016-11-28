@@ -10,7 +10,7 @@ public class Constants {
     public static final String API_BASE_URL = "https://www.flickr.com/services";
     public static final String API_VERSION = "1.0";
 
-    public static final String API_REQUESTS_URL = "https://api.flickr.com/services/rest";
+    public static final String API_REQUESTS_URL = "https://api.flickr.com/services/rest/";
 
     public static final String OAUTH_REQUEST_TOKEN = "/oauth/request_token";
     public static final String OAUTH_AUTHORIZE = "/oauth/authorize";

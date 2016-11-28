@@ -9,4 +9,8 @@ public class TestLoginUser {
 
     @SerializedName("stat")
     String stat;
+
+    public String toString() {
+        return "TestLoginUser: " + user + " " + stat;
+    }
 }
