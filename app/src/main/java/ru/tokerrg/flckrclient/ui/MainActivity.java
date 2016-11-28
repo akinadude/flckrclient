@@ -7,16 +7,17 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
 
-import com.squareup.okhttp.Request;
+import java.io.IOException;
 
 import oauth.signpost.OAuth;
 import oauth.signpost.OAuthConsumer;
 import oauth.signpost.OAuthProvider;
+import retrofit2.Call;
+import retrofit2.Response;
 import ru.tokerrg.flckrclient.api.Api;
 import ru.tokerrg.flckrclient.api.Constants;
-import ru.tokerrg.flckrclient.api.auth.RetrofitHttpOAuthConsumer;
-import ru.tokerrg.flckrclient.api.auth.SigningOkClient;
 import ru.tokerrg.flckrclient.api.model.TestLoginUser;
+import se.akerfeldt.okhttp.signpost.OkHttpOAuthConsumer;
 
 public class MainActivity extends Activity {
 
@@ -86,18 +87,20 @@ public class MainActivity extends Activity {
                 e.printStackTrace();
             }
 
-            //################################
-            RetrofitHttpOAuthConsumer retrofitConsumer =
-                    new RetrofitHttpOAuthConsumer(consumer.getConsumerKey(), consumer.getConsumerSecret());
-            retrofitConsumer.setTokenWithSecret(consumer.getToken(), consumer.getTokenSecret());
+            OkHttpOAuthConsumer okHttpOAuthConsumer =
+                    new OkHttpOAuthConsumer(consumer.getConsumerKey(), consumer.getConsumerSecret());
+            okHttpOAuthConsumer.setTokenWithSecret(consumer.getToken(), consumer.getTokenSecret());
 
-            SigningOkClient signingClient = new SigningOkClient(retrofitConsumer);
-
-            mApi.buildRestAdapter(retrofitConsumer);
-            TestLoginUser tlu = mApi.testLogin();
-
-            int a = 10;
-            a++;
+            mApi.buildRestAdapter(okHttpOAuthConsumer);
+            Call<TestLoginUser> call = mApi.testLogin();
+            try {
+                Response<TestLoginUser> response = call.execute();
+                int statusCode = response.code();
+                TestLoginUser tlu = response.body();
+                Log.i("MainActivity", "statusCode: " + statusCode + ", response: " + tlu.toString());
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
 
             return null;
         }
@@ -109,29 +112,6 @@ public class MainActivity extends Activity {
             Log.i("MainActivity", "onPostExecute called");
             Log.i("MainActivity", "access token and secret: " + consumer.getToken() + ", " +
                     consumer.getTokenSecret());
-        }
-    }
-
-    private class TestRequestTask extends AsyncTask<Void, Void, Void> {
-
-        @Override
-        protected void onPreExecute() {
-            super.onPreExecute();
-
-            Log.i("MainActivity", "TestRequestTask onPreExecute called");
-        }
-
-        @Override
-        protected Void doInBackground(Void... params) {
-
-            return null;
-        }
-
-        @Override
-        protected void onPostExecute(Void value) {
-            super.onPostExecute(value);
-
-            Log.i("MainActivity", "TestRequestTask onPreExecute called");
         }
     }
 }

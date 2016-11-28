@@ -2,31 +2,27 @@ package ru.tokerrg.flckrclient.api;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.squareup.okhttp.OkHttpClient;
-
-import java.util.Random;
-import java.util.concurrent.TimeUnit;
+import okhttp3.OkHttpClient;
 
 import oauth.signpost.OAuthConsumer;
 import oauth.signpost.OAuthProvider;
 import oauth.signpost.basic.DefaultOAuthConsumer;
 import oauth.signpost.basic.DefaultOAuthProvider;
-import retrofit.RestAdapter;
-import retrofit.converter.GsonConverter;
-import ru.tokerrg.flckrclient.api.auth.RetrofitHttpOAuthConsumer;
+import retrofit2.Call;
+import retrofit2.Retrofit;
+import retrofit2.converter.gson.GsonConverterFactory;
 import ru.tokerrg.flckrclient.api.auth.SigningOkClient;
 import ru.tokerrg.flckrclient.api.model.TestLoginUser;
+import se.akerfeldt.okhttp.signpost.OkHttpOAuthConsumer;
 
 public class Api {
 
     private static Api mInstance;
     private IApi mApiInterface;
     private Gson mGson;
-    private RestAdapter restAdapter;
 
     private OAuthConsumer mOauthConsumer;
     private OAuthProvider mOauthProvider;
-    private RetrofitHttpOAuthConsumer mRetrofitOauthConsumer;
 
     public static Api getInstance() {
         if (mInstance == null) mInstance = new Api();
@@ -43,28 +39,18 @@ public class Api {
                 Constants.API_BASE_URL + Constants.OAUTH_ACCESS_TOKEN,
                 Constants.API_BASE_URL + Constants.OAUTH_AUTHORIZE);
         mOauthConsumer = new DefaultOAuthConsumer(Constants.CONSUMER_KEY, Constants.CONSUMER_SECRET);
-        mRetrofitOauthConsumer = new RetrofitHttpOAuthConsumer(mOauthConsumer.getConsumerKey(),
-                mOauthConsumer.getConsumerSecret());
-
-        /*RestAdapter restAdapter = new RestAdapter.Builder()
-                .setLogLevel(RestAdapter.LogLevel.FULL)
-                .setEndpoint(Constants.API_REQUESTS_URL)
-                .setConverter(new GsonConverter(mGson))
-                .setClient(getSigningOkHttpClient(mRetrofitOauthConsumer))
-                .build();
-        mApiInterface = restAdapter.create(IApi.class);*/
     }
 
 
-    private SigningOkClient getSigningOkHttpClient(RetrofitHttpOAuthConsumer consumer) {
+    private SigningOkClient getSigningOkHttpClient(OkHttpOAuthConsumer consumer) {
         SigningOkClient client = new SigningOkClient(consumer);
         return client;
     }
 
     private OkHttpClient getOkHttpClient() {
         OkHttpClient client = new OkHttpClient();
-        client.setConnectTimeout(20, TimeUnit.SECONDS);
-        client.setReadTimeout(20, TimeUnit.SECONDS);
+        /*client.setConnectTimeout(20, TimeUnit.SECONDS);
+        client.setReadTimeout(20, TimeUnit.SECONDS);*/
         return client;
     }
 
@@ -84,25 +70,16 @@ public class Api {
         mOauthProvider = p;
     }
 
-    public void buildRestAdapter(RetrofitHttpOAuthConsumer consumer) {
-        restAdapter = new RestAdapter.Builder()
-                .setLogLevel(RestAdapter.LogLevel.FULL)
-                .setEndpoint(Constants.API_REQUESTS_URL)
-                .setConverter(new GsonConverter(mGson))
-                .setClient(getSigningOkHttpClient(consumer))
+    public void buildRestAdapter(OkHttpOAuthConsumer consumer) {
+        Retrofit retrofit = new Retrofit.Builder()
+                .baseUrl(Constants.API_REQUESTS_URL)
+                .addConverterFactory(GsonConverterFactory.create(mGson))
+                .client(getSigningOkHttpClient(consumer))
                 .build();
-        mApiInterface = restAdapter.create(IApi.class);
+        mApiInterface = retrofit.create(IApi.class);
     }
 
-    public Void authStepOne() {
-        int nonce = new Random().nextInt();
-        long timestamp = System.currentTimeMillis()/1000;
-
-        return mApiInterface.authStepOne(nonce, timestamp, Constants.CONSUMER_KEY, "HMAC-SHA1",
-                Constants.API_VERSION, Constants.OAUTH_URL_CALLBACK);
-    }
-
-    public TestLoginUser testLogin() {
+    public Call<TestLoginUser> testLogin() {
         return mApiInterface.testLogin(1, "json", "flickr.test.login");
     }
 }

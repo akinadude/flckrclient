@@ -1,29 +1,33 @@
 package ru.tokerrg.flckrclient.api.auth;
 
-import java.io.IOException;
+import oauth.signpost.exception.OAuthCommunicationException;
+import oauth.signpost.exception.OAuthExpectationFailedException;
+import oauth.signpost.exception.OAuthMessageSignerException;
+import okhttp3.Call;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import se.akerfeldt.okhttp.signpost.OkHttpOAuthConsumer;
 
-import retrofit.client.OkClient;
-import retrofit.client.Request;
-import retrofit.client.Response;
+public class SigningOkClient extends OkHttpClient {
+    private final OkHttpOAuthConsumer consumer;
 
-public class SigningOkClient extends OkClient {
-    private final RetrofitHttpOAuthConsumer oauthConsumer;
-
-    public SigningOkClient(RetrofitHttpOAuthConsumer oauthConsumer) {
-        this.oauthConsumer = oauthConsumer;
+    public SigningOkClient(OkHttpOAuthConsumer consumer) {
+        this.consumer = consumer;
     }
 
     @Override
-    public Response execute(Request request) throws IOException {
+    public Call newCall(Request request) {
+        Request signedRequest = null;
         try {
-            RetrofitHttpRequest signedRetrofitHttpRequest =
-                    (RetrofitHttpRequest) oauthConsumer.sign(request);
-            request = (Request) signedRetrofitHttpRequest.unwrap();
-        } catch (Exception e) {
-            throw new IOException(e);
+            signedRequest = (Request) consumer.sign(request).unwrap();
+        } catch (OAuthMessageSignerException e) {
+            e.printStackTrace();
+        } catch (OAuthExpectationFailedException e) {
+            e.printStackTrace();
+        } catch (OAuthCommunicationException e) {
+            e.printStackTrace();
         }
 
-        Response response = super.execute(request);
-        return response;
+        return super.newCall(signedRequest);
     }
 }
